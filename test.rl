@@ -1,5 +1,11 @@
 #include <stdio.h>
 #include <string.h>
+
+/*
+ *  A nice example here of capturing integers and floats with
+ *  state machine transitions.
+ */
+
 %%{
 machine foo;
     write data;
@@ -7,10 +13,14 @@ machine foo;
 int main( int argc, char **argv )
 {
     int cs;
+    long int intField = 0;
+    long int fracNumerator = 0;
+    long int fracDenominator = 1;
     if ( argc > 1 ) {
         char *p = argv[1];
         char *pe = p + strlen( p );
         char *eof;
+
         %%{
             action BadCommandError {
                 printf("BadCommandError\n");
@@ -28,14 +38,6 @@ int main( int argc, char **argv )
 
             action ShowHelp {
                 printf("Show help\n");
-            }
-
-            action GetFrequency {
-                printf("GetFrequency\n");
-            }
-
-            action SetFrequency {
-                printf("SetFrequency\n");
             }
 
             action EchoOn {
@@ -66,11 +68,46 @@ int main( int argc, char **argv )
                 printf("Reset\n");
             }
 
+            action GetFrequency {
+                printf("GetFrequency\n");
+            }
+
+            action SetFrequency {
+                float frequency = intField + (float)fracNumerator / fracDenominator;
+                printf("SetFrequency %f MHz\n", frequency);
+            }
+
+            action Scan {
+                printf("Scan\n");
+            }
+
+            action StartDecimalInteger {
+                intField = 0;
+            }
+
+            action ShiftDecimalIntegerDigit {
+                intField *= 10;
+                intField += fc - '0';
+            }
+
+            action StartDecimalFraction {
+                fracNumerator = 0;
+                fracDenominator = 1;
+            }
+
+            action ShiftDecimalFractionDigit {
+                fracNumerator *= 10;
+                fracNumerator += fc - '0';
+                fracDenominator *= 10;
+            }
+
+            integer = digit+ >StartDecimalInteger $ShiftDecimalIntegerDigit;
+            fraction = ('.' >StartDecimalFraction).(digit+ $ShiftDecimalFractionDigit);
+            decimal = integer fraction?;
+
             noop = "AT" % DoNothing;
             redo = "A/" % RepeatLastCommand;
             help = "AT&V" % ShowHelp;
-            get_freq = "AT+F?" % GetFrequency;
-            set_freq = "AT+F=" % SetFrequency;
             echo_off = "ATE0" % EchoOff;
             echo_on = "ATE1" % EchoOn;
             quiet_off = "ATQ0" % QuietOff;
@@ -78,8 +115,10 @@ int main( int argc, char **argv )
             verbose_off = "ATV0" % VerboseOn;
             verbose_on = "ATV1" % VerboseOff;
             reset = "ATZ" % Reset;
+            get_freq = "AT+FREQ?" % GetFrequency;
+            set_freq = "AT+FREQ=".decimal % SetFrequency;
+            start_scan = "AT+SCAN" % Scan;
 
-            decimal = [0-9]+ ( '.' [0-9]+ )?;
             command = redo
                     | noop
                     | help
@@ -94,6 +133,8 @@ int main( int argc, char **argv )
                     | reset
                     ;
 
+            ws = [\t ];
+
             terminator = '\n'
                        | '^M'
                        ;
@@ -102,7 +143,7 @@ int main( int argc, char **argv )
 
             main := (
                 (
-                    (space* . command . space*. terminator)
+                    (ws* . command . ws*. terminator)
                     $!BadCommandError
                 )
             )*;
@@ -111,6 +152,9 @@ int main( int argc, char **argv )
             write exec;
         }%%
     }
+    printf("intField = %ld\n", intField);
+    printf("fracNumerator = %ld\n", fracNumerator);
+    printf("fracDenominator = %ld\n", fracDenominator);
     printf("result = %i\n", cs >= foo_first_final );
     return 0;
 }
