@@ -64,6 +64,10 @@ int main( int argc, char **argv )
                 printf("VerboseOff\n");
             }
 
+            action Inquiry {
+                printf("Inquiry\n");
+            }
+
             action Reset {
                 printf("Reset\n");
             }
@@ -108,12 +112,13 @@ int main( int argc, char **argv )
             noop = "AT" % DoNothing;
             redo = "A/" % RepeatLastCommand;
             help = "AT&V" % ShowHelp;
-            echo_off = "ATE0" % EchoOff;
+            echo_off = /ATE0?/ % EchoOff;
             echo_on = "ATE1" % EchoOn;
-            quiet_off = "ATQ0" % QuietOff;
+            quiet_off = /ATQ0?/ % QuietOff;
             quiet_on = "ATQ1" % QuietOn;
-            verbose_off = "ATV0" % VerboseOn;
-            verbose_on = "ATV1" % VerboseOff;
+            verbose_off = /ATV0?/ % VerboseOff;
+            verbose_on = "ATV1" % VerboseOn;
+            inquiry = /ATI[0-9]?/ % Inquiry;
             reset = "ATZ" % Reset;
             get_freq = "AT+FREQ?" % GetFrequency;
             set_freq = "AT+FREQ=".decimal % SetFrequency;
