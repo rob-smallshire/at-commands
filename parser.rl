@@ -64,10 +64,12 @@ static int cs;  /* Current state */
     }
 
     action ListFrequencies {
+        printf("ListFrequencies\n");
         list_frequencies();
     }
 
     action GetFrequency {
+        printf("GetFrequency\n");
         get_frequency();
     }
 
@@ -129,10 +131,10 @@ static int cs;  /* Current state */
     verbose_on = "ATV1" % VerboseOn;
     inquiry = /ATI[0-9]?/ % Inquiry;
     reset = "ATZ" % Reset;
-    get_freq = "AT+FREQ?" $ GetFrequency;
-    lst_freq = "AT+FREQ#" $ ListFrequencies;
+    get_freq = "AT+FREQ?" % GetFrequency;
+    lst_freq = "AT+FREQ#" % ListFrequencies;
     set_freq = "AT+FREQ=".integer % SetFrequency;
-    get_rssi = "AT+FREQ?" $ GetRssi;
+    get_rssi = "AT+RSSI?" % GetRssi;
     set_rssi = "AT+RSSI=".integer % SetRssi;
     lst_rssi = "AT+RSSI#" % ListRssis;
 
@@ -142,6 +144,7 @@ static int cs;  /* Current state */
     command = noop
               | help
               | get_freq
+              | lst_freq
               | set_freq
               | echo_off
               | echo_on

@@ -40,7 +40,7 @@ bool error(int error_id) {
  */
 bool list_frequencies() {
     for (int i = 0; i < NUM_FREQ_TEXT; ++i) {
-        printf("%d %s\n", i, FREQ_TEXT[i]);
+        printf("%d: %s\n", i, FREQ_TEXT[i]);
     }
     return ok();
 }
@@ -50,7 +50,7 @@ bool list_frequencies() {
  * @return
  */
 bool get_frequency() {
-    printf("%d", radio_frequency_index);
+    printf("%d\n", radio_frequency_index);
     return ok();
 }
 
