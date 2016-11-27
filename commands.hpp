@@ -33,7 +33,18 @@ bool list_frequencies();
 bool get_frequency();
 bool set_frequency(int frequency_index);
 
+bool list_rssi_thresholds();
+bool get_rssi_threshold();
+bool set_rssi_threshold(int rssi_threshold_index);
 
+bool list_lna_gains();
+bool get_lna_gain();
+bool set_lna_gain(int lna_gain_index);
 
+bool list_baseband_bandwidths();
+bool get_baseband_bandwidth();
+bool set_baseband_bandwidth(int baseband_bandwidth_index);
+
+bool sample_rssi(float duration_seconds);
 
 #endif //ATCOMMANDS_COMMANDS_HPP

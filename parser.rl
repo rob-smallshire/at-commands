@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <assert.h>
+#include <ctype.h>
 
 #include "commands.hpp"
 
@@ -18,7 +20,7 @@ static int cs;  /* Current state */
     machine microscript;
 
     action BadCommandError {
-        printf("BadCommandError\n");
+        printf("Error: Command not recognized\n");
         fhold;
         fgoto consume_line;
     }
@@ -79,18 +81,52 @@ static int cs;  /* Current state */
         set_frequency(frequency_index);
     }
 
-    action ListRssis {
-        //list_rssis();
+    action ListRssiThresholds {
+        list_rssi_thresholds();
     }
 
-    action GetRssi {
-        //get_rssi();
+    action GetRssiThreshold {
+        get_rssi_threshold();
     }
 
-    action SetRssi {
+    action SetRssiThreshold {
         int rssi_index = intField;;
         printf("SetRssi index=%d\n", rssi_index);
-        //set_rssi(rssi_index);
+        set_rssi_threshold(rssi_index);
+    }
+
+    action ListLnaGains {
+        list_lna_gains();
+    }
+
+    action GetLnaGain {
+        get_lna_gain();
+    }
+
+    action SetLnaGain {
+        int lna_gain_index = intField;;
+        printf("SetLnaGain index=%d\n", lna_gain_index);
+        set_lna_gain(lna_gain_index);
+    }
+
+    action ListBasebandBandwidths {
+        list_baseband_bandwidths();
+    }
+
+    action GetBasebandBandwidth {
+        get_baseband_bandwidth();
+    }
+
+    action SetBasebandBandwidth {
+        int baseband_bandwidth_index = intField;;
+        printf("SetBasebandBandwidth index=%d\n", baseband_bandwidth_index);
+        set_baseband_bandwidth(baseband_bandwidth_index);
+    }
+
+    action SampleRssi {
+        float duration_seconds = float(fracNumerator) / float(fracDenominator);
+        printf("SampleRssi duration_seconds=%f\n", duration_seconds);
+        sample_rssi(duration_seconds);
     }
 
     action Scan {
@@ -117,6 +153,14 @@ static int cs;  /* Current state */
         fracDenominator *= 10;
     }
 
+    action StartTerminator {
+        printf("StartTerminator\n");
+    }
+
+    action EndTerminator {
+        printf("EndTerminator");
+    }
+
     integer = digit+ >StartDecimalInteger $ShiftDecimalIntegerDigit;
     fraction = ('.' >StartDecimalFraction).(digit+ $ShiftDecimalFractionDigit);
     decimal = integer fraction?;
@@ -131,13 +175,24 @@ static int cs;  /* Current state */
     verbose_on = "ATV1" % VerboseOn;
     inquiry = /ATI[0-9]?/ % Inquiry;
     reset = "ATZ" % Reset;
+
     get_freq = "AT+FREQ?" % GetFrequency;
     lst_freq = "AT+FREQ#" % ListFrequencies;
     set_freq = "AT+FREQ=".integer % SetFrequency;
-    get_rssi = "AT+RSSI?" % GetRssi;
-    set_rssi = "AT+RSSI=".integer % SetRssi;
-    lst_rssi = "AT+RSSI#" % ListRssis;
 
+    get_rssit = "AT+RSSIT?" % GetRssiThreshold;
+    set_rssit = "AT+RSSIT=".integer % SetRssiThreshold;
+    lst_rssit = "AT+RSSIT#" % ListRssiThresholds;
+
+    get_lnag = "AT+LNAG?" % GetLnaGain;
+    set_lnag = "AT+LNAG=".integer % SetLnaGain;
+    lst_lnag = "AT+LNAG#" % ListLnaGains;
+
+    get_bbbw = "AT+BBBW?" % GetBasebandBandwidth;
+    set_bbbw = "AT+BBBW=".integer % SetBasebandBandwidth;
+    lst_bbbw = "AT+BBBW#" % ListBasebandBandwidths;
+
+    sample_rssi = "AT+SRSSI=".decimal % SampleRssi;
 
     start_scan = "AT+SCAN" % Scan;
 
@@ -146,6 +201,15 @@ static int cs;  /* Current state */
               | get_freq
               | lst_freq
               | set_freq
+              | lst_rssit
+              | get_rssit
+              | set_rssit
+              | lst_lnag
+              | get_lnag
+              | set_lnag
+              | lst_bbbw
+              | get_bbbw
+              | set_bbbw
               | echo_off
               | echo_on
               | quiet_off
@@ -157,16 +221,14 @@ static int cs;  /* Current state */
 
     ws = [\t ];
 
-    terminator = '\n'
-               | '^M'
-               ;
+    terminator = '\n' | '^M';
 
     consume_line := [^terminator]* terminator @{ fgoto main; };
 
     main := (
                 (
-                    (ws* . command . ws*. terminator)
-                    $!BadCommandError
+                    (ws* . command . ws* . terminator?)
+                    @!BadCommandError
                 )
             )*;
 }%%
@@ -184,21 +246,47 @@ void parse_microscript(const char* p, uint16_t len, uint8_t is_eof) {
   %% write exec;
 }
 
+int is_empty(const char *s) {
+  while (*s != '\0') {
+    if (!isspace(*s))
+      return 0;
+    s++;
+  }
+  return 1;
+}
+
 int main( int argc, char **argv )
 {
-    init_microscript();
-
-    //long int intField = 0;
-    //long int fracNumerator = 0;
-    //long int fracDenominator = 1;
     if ( argc > 1 ) {
         char *p = argv[1];
+        init_microscript();
         parse_microscript(p, strlen(p), 0);
+        printf("intField = %ld\n", intField);
+        printf("fracNumerator = %ld\n", fracNumerator);
+        printf("fracDenominator = %ld\n", fracDenominator);
+        printf("result = %i\n", cs >= microscript_first_final );
     }
-
-    printf("intField = %ld\n", intField);
-    printf("fracNumerator = %ld\n", fracNumerator);
-    printf("fracDenominator = %ld\n", fracDenominator);
-    printf("result = %i\n", cs >= microscript_first_final );
+    else {
+        assert(argc == 1);
+        while (true) {
+            init_microscript();
+            char* line = 0;
+            size_t size;
+            int num_chars = getline(&line, &size, stdin);
+            if (num_chars == -1) {
+                printf("No line\n");
+            }
+            else {
+                if (is_empty(line)) {
+                    break;
+                }
+                else {
+                    parse_microscript(line, num_chars, 0);
+                }
+            }
+            free(line);
+        }
+        printf("Bye!\n");
+    }
     return 0;
 }
