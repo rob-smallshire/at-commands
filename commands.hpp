@@ -29,6 +29,12 @@ extern const char* error_messages[ERROR_END];
 bool ok();
 bool error(int error_id);
 
+bool quiet_on();
+bool quiet_off();
+
+bool verbose_numeric();
+bool verbose_text();
+
 bool list_frequencies();
 bool get_frequency();
 bool set_frequency(int frequency_index);

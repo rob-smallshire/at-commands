@@ -14,10 +14,11 @@ const int NUM_LNA_GAIN_TEXT = 4;
 const char* LNA_GAIN_TEXT[] = {"0", "-14", "-6", "-20"};
 
 const int NUM_BASEBAND_BANDWIDTH_TEXT = 6;
+const int ERROR_OFFSET = 128;
 const char* BASEBAND_BANDWIDTH_TEXT[] = {"400", "340", "270", "200", "134", "67"};
 
 bool quiet = false;
-bool verbose = true;
+bool verbose_is_text = true;
 
 const char* error_messages[ERROR_END] = {
         /* ERROR_INDEX_OUT_OF_BOUNDS */ "Index out of bounds.",
@@ -25,20 +26,44 @@ const char* error_messages[ERROR_END] = {
 
 bool ok() {
     if (!quiet) {
-        printf("OK\n");
+        if (verbose_is_text) {
+            printf("OK\n");
+        } else {
+            printf("0\n");
+        }
     }
     return true;
 }
 
 bool error(int error_id) {
     if (!quiet) {
-        if (verbose) {
-            printf("Error: %s\n", error_messages[error_id]);
+        if (verbose_is_text) {
+            printf("ERROR: %s\n", error_messages[error_id]);
         } else {
-            printf("%d", error_id);
+            printf("%d", error_id + ERROR_OFFSET);
         }
     }
     return false;
+}
+
+bool quiet_on() {
+    quiet = true;
+    return ok();
+}
+
+bool quiet_off() {
+    quiet = false;
+    return ok();
+}
+
+bool verbose_numeric() {
+    verbose_is_text = false;
+    return ok();
+}
+
+bool verbose_text() {
+    verbose_is_text = true;
+    return ok();
 }
 
 bool list_frequencies() {

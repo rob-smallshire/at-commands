@@ -43,18 +43,22 @@ static int cs;  /* Current state */
 
     action QuietOn {
         printf("QuietOn\n");
+        quiet_on();
     }
 
     action QuietOff {
-        printf("QuietOn\n");
+        printf("QuietOff\n");
+        quiet_off();
     }
 
-    action VerboseOn {
-        printf("VerboseOn\n");
+    action VerboseNumeric {
+        printf("VerboseNumeric\n");
+        verbose_numeric();
     }
 
-    action VerboseOff {
-        printf("VerboseOff\n");
+    action VerboseText {
+        printf("VerboseText\n");
+        verbose_text();
     }
 
     action Inquiry {
@@ -171,10 +175,10 @@ static int cs;  /* Current state */
     help = "AT&V" % ShowHelp;
     echo_off = /ATE0?/ % EchoOff;
     echo_on = "ATE1" % EchoOn;
-    quiet_off = /ATQ0?/ % QuietOff;
-    quiet_on = "ATQ1" % QuietOn;
-    verbose_off = /ATV0?/ % VerboseOff;
-    verbose_on = "ATV1" % VerboseOn;
+    quiet_off = "ATQ" . "0"? % QuietOn;
+    quiet_on = "ATQ1" % QuietOff;
+    verbose_numeric = "ATV" . "0"? % VerboseNumeric;
+    verbose_text = "ATV1" % VerboseText;
     inquiry = "ATI".integer? % Inquiry;
     reset = "ATZ" % Reset;
 
@@ -216,8 +220,8 @@ static int cs;  /* Current state */
               | echo_on
               | quiet_off
               | quiet_on
-              | verbose_off
-              | verbose_on
+              | verbose_numeric
+              | verbose_text
               | inquiry
               | reset
               ;
