@@ -47,4 +47,6 @@ bool set_baseband_bandwidth(int baseband_bandwidth_index);
 
 bool sample_rssi(float duration_seconds);
 
+bool inquiry(int inquiry_index);
+
 #endif //ATCOMMANDS_COMMANDS_HPP

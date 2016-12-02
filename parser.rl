@@ -58,7 +58,9 @@ static int cs;  /* Current state */
     }
 
     action Inquiry {
-        printf("Inquiry\n");
+        int inquiry_index = intField;
+        printf("Inquiry index=%d\n", inquiry_index);
+        inquiry(inquiry_index);
     }
 
     action Reset {
@@ -173,7 +175,7 @@ static int cs;  /* Current state */
     quiet_on = "ATQ1" % QuietOn;
     verbose_off = /ATV0?/ % VerboseOff;
     verbose_on = "ATV1" % VerboseOn;
-    inquiry = /ATI[0-9]?/ % Inquiry;
+    inquiry = "ATI".integer? % Inquiry;
     reset = "ATZ" % Reset;
 
     get_freq = "AT+FREQ?" % GetFrequency;
@@ -216,6 +218,7 @@ static int cs;  /* Current state */
               | quiet_on
               | verbose_off
               | verbose_on
+              | inquiry
               | reset
               ;
 

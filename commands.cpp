@@ -124,3 +124,17 @@ bool set_baseband_bandwidth(int baseband_bandwidth_index) {
 bool sample_rssi(float duration_seconds) {
     return ok();
 }
+
+bool inquiry(int inquiry_index) {
+    switch (inquiry_index) {
+        case 0:
+            printf("FSK Receiver and Decoder HAT for Raspberry Pi\n");
+            break;
+        case 1:
+            printf("Sixty North AS\n");
+            break;
+        default:
+            return error(ERROR_INDEX_OUT_OF_BOUNDS);
+    }
+    return ok();
+}
