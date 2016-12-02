@@ -20,27 +20,26 @@ const char* BASEBAND_BANDWIDTH_TEXT[] = {"400", "340", "270", "200", "134", "67"
 bool quiet = false;
 bool verbose_is_text = true;
 
-const char* error_messages[ERROR_END] = {
-        /* ERROR_INDEX_OUT_OF_BOUNDS */ "Index out of bounds.",
+const char* response_messages[RESPONSE_ERROR_END] = {
+        /* RESPONSE_OK */                        "OK",
+        /* RESPONSE_ERROR_BAD_COMMAND */         "Bad command",
+        /* RESPONSE_ERROR_INDEX_OUT_OF_BOUNDS */ "Index out of bounds.",
+
 };
 
 bool ok() {
-    if (!quiet) {
-        if (verbose_is_text) {
-            printf("OK\n");
-        } else {
-            printf("0\n");
-        }
-    }
-    return true;
+    return response(RESPONSE_OK);
 }
 
-bool error(int error_id) {
+bool response(int response_id) {
     if (!quiet) {
         if (verbose_is_text) {
-            printf("ERROR: %s\n", error_messages[error_id]);
+            if (response_id != RESPONSE_OK) {
+                printf("ERROR: ");
+            }
+            printf("%s\n", response_messages[response_id]);
         } else {
-            printf("%d", error_id + ERROR_OFFSET);
+            printf("%d", response_id);
         }
     }
     return false;
@@ -80,7 +79,7 @@ bool get_frequency() {
 
 bool set_frequency(int frequency_index) {
     if ((frequency_index < 0) || (frequency_index >= NUM_FREQ_TEXT)) {
-        return error(ERROR_INDEX_OUT_OF_BOUNDS);
+        return response(RESPONSE_ERROR_INDEX_OUT_OF_BOUNDS);
     }
     radio_frequency_index = frequency_index;
     return ok();
@@ -100,7 +99,7 @@ bool get_rssi_threshold() {
 
 bool set_rssi_threshold(int rssi_threshold_index) {
     if ((rssi_threshold_index < 0) || (rssi_threshold_index >= NUM_RSSI_THRESHOLD_TEXT)) {
-        return error(ERROR_INDEX_OUT_OF_BOUNDS);
+        return response(RESPONSE_ERROR_INDEX_OUT_OF_BOUNDS);
     }
     radio_rssi_threshold_index = rssi_threshold_index;
     return ok();
@@ -120,7 +119,7 @@ bool get_lna_gain() {
 
 bool set_lna_gain(int lna_gain_index) {
     if ((lna_gain_index < 0) || (lna_gain_index >= NUM_LNA_GAIN_TEXT)) {
-        return error(ERROR_INDEX_OUT_OF_BOUNDS);
+        return response(RESPONSE_ERROR_INDEX_OUT_OF_BOUNDS);
     }
     radio_lna_gain_index = lna_gain_index;
     return ok();
@@ -140,7 +139,7 @@ bool get_baseband_bandwidth() {
 
 bool set_baseband_bandwidth(int baseband_bandwidth_index) {
     if ((baseband_bandwidth_index < 0) || (baseband_bandwidth_index >= NUM_LNA_GAIN_TEXT)) {
-        return error(ERROR_INDEX_OUT_OF_BOUNDS);
+        return response(RESPONSE_ERROR_INDEX_OUT_OF_BOUNDS);
     }
     radio_baseband_bandwidth_index = baseband_bandwidth_index;
     return ok();
@@ -159,7 +158,7 @@ bool inquiry(int inquiry_index) {
             printf("Sixty North AS\n");
             break;
         default:
-            return error(ERROR_INDEX_OUT_OF_BOUNDS);
+            return response(RESPONSE_ERROR_INDEX_OUT_OF_BOUNDS);
     }
     return ok();
 }

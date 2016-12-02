@@ -20,7 +20,7 @@ static int cs;  /* Current state */
     machine microscript;
 
     action BadCommandError {
-        printf("Error: Command not recognized\n");
+        response(RESPONSE_ERROR_BAD_COMMAND);
         fhold;
         fgoto consume_line;
     }
@@ -63,6 +63,7 @@ static int cs;  /* Current state */
 
     action Inquiry {
         int inquiry_index = intField;
+        intField = 0;
         printf("Inquiry index=%d\n", inquiry_index);
         inquiry(inquiry_index);
     }
@@ -83,6 +84,7 @@ static int cs;  /* Current state */
 
     action SetFrequency {
         int frequency_index = intField;
+        intField = 0;
         printf("SetFrequency index=%d\n", frequency_index);
         set_frequency(frequency_index);
     }
@@ -96,7 +98,8 @@ static int cs;  /* Current state */
     }
 
     action SetRssiThreshold {
-        int rssi_index = intField;;
+        int rssi_index = intField;
+        intField = 0;
         printf("SetRssi index=%d\n", rssi_index);
         set_rssi_threshold(rssi_index);
     }
@@ -110,7 +113,8 @@ static int cs;  /* Current state */
     }
 
     action SetLnaGain {
-        int lna_gain_index = intField;;
+        int lna_gain_index = intField;
+        intField = 0;
         printf("SetLnaGain index=%d\n", lna_gain_index);
         set_lna_gain(lna_gain_index);
     }
@@ -125,21 +129,25 @@ static int cs;  /* Current state */
 
     action SetBasebandBandwidth {
         int baseband_bandwidth_index = intField;;
+        intField = 0;
         printf("SetBasebandBandwidth index=%d\n", baseband_bandwidth_index);
         set_baseband_bandwidth(baseband_bandwidth_index);
     }
 
     action SampleRssi {
         float duration_seconds = float(fracNumerator) / float(fracDenominator);
+        fracNumerator = 0;
+        fracDenominator = 1;
         printf("SampleRssi duration_seconds=%f\n", duration_seconds);
         sample_rssi(duration_seconds);
+
     }
 
     action Scan {
         printf("Scan\n");
     }
 
-    action StartDecimalInteger {
+    action ClearDecimalInteger {
         intField = 0;
     }
 
@@ -148,7 +156,7 @@ static int cs;  /* Current state */
         intField += fc - '0';
     }
 
-    action StartDecimalFraction {
+    action ClearDecimalFraction {
         fracNumerator = 0;
         fracDenominator = 1;
     }
@@ -167,8 +175,8 @@ static int cs;  /* Current state */
         printf("EndTerminator");
     }
 
-    integer = digit+ >StartDecimalInteger $ShiftDecimalIntegerDigit;
-    fraction = ('.' >StartDecimalFraction).(digit+ $ShiftDecimalFractionDigit);
+    integer = digit+ >ClearDecimalInteger $ShiftDecimalIntegerDigit;
+    fraction = ('.' >ClearDecimalFraction).(digit+ $ShiftDecimalFractionDigit);
     decimal = integer fraction?;
 
     noop = "AT" % DoNothing;

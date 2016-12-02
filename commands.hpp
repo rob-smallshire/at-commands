@@ -18,16 +18,19 @@ extern const char* FREQ_TEXT[];
 extern bool quiet;
 extern bool verbose;
 
-enum Error { ERROR_INDEX_OUT_OF_BOUNDS,
+enum Response {
+    RESPONSE_OK = 0,
+    RESPONSE_ERROR_BAD_COMMAND,
+    RESPONSE_ERROR_INDEX_OUT_OF_BOUNDS,
 
-             ERROR_END,
-             ERROR_BEGIN = ERROR_INDEX_OUT_OF_BOUNDS };
+    RESPONSE_ERROR_END,
+    RESPONSE_ERROR_BEGIN = RESPONSE_ERROR_INDEX_OUT_OF_BOUNDS };
 
 
-extern const char* error_messages[ERROR_END];
+extern const char* response_messages[RESPONSE_ERROR_END];
 
 bool ok();
-bool error(int error_id);
+bool response(int response_id);
 
 bool quiet_on();
 bool quiet_off();
